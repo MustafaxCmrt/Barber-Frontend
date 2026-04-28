@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { Toaster } from "@/lib/toast";
 
 function LandingPlaceholder() {
   return (
@@ -11,7 +12,7 @@ function LandingPlaceholder() {
           By Hazen Gülfırat
         </p>
         <p className="font-body text-sm text-charcoal-300 mt-8">
-          FAZ 0 — Proje iskeleti hazır.
+          FAZ 1 — API client hazır.
         </p>
       </div>
     </main>
@@ -20,9 +21,12 @@ function LandingPlaceholder() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPlaceholder />} />
-      <Route path="*" element={<LandingPlaceholder />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPlaceholder />} />
+        <Route path="*" element={<LandingPlaceholder />} />
+      </Routes>
+      <Toaster />
+    </>
   );
 }
