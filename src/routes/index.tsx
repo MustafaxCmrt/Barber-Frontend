@@ -4,10 +4,13 @@ import { LandingPage } from "@/pages/public/Landing";
 import { BarbersPage } from "@/pages/public/BarbersPage";
 import { BarberDetailPage } from "@/pages/public/BarberDetailPage";
 import { ServicesPage } from "@/pages/public/ServicesPage";
+import { AppointmentBookingPage } from "@/pages/public/AppointmentBookingPage";
+import { AppointmentSuccessPage } from "@/pages/public/AppointmentSuccessPage";
 
 /**
  * Bölüm 10.6 — sayfa yapısı.
- * FAZ 2'de public taraf — randevu/lookup placeholder bırakıyoruz, FAZ 3-4'te eklenecek.
+ * FAZ 3'te /randevu-al + /randevu-basarili gerçek sayfalarla değiştirildi.
+ * /randevumu-bul FAZ 4'te eklenecek.
  */
 export function AppRoutes() {
   return (
@@ -17,8 +20,12 @@ export function AppRoutes() {
         <Route path="hizmetler" element={<ServicesPage />} />
         <Route path="berberler" element={<BarbersPage />} />
         <Route path="berberler/:id" element={<BarberDetailPage />} />
-        <Route path="randevu-al" element={<NotImplementedPage label="Randevu Al" phase="FAZ 3" />} />
-        <Route path="randevumu-bul" element={<NotImplementedPage label="Randevumu Bul" phase="FAZ 4" />} />
+        <Route path="randevu-al" element={<AppointmentBookingPage />} />
+        <Route path="randevu-basarili" element={<AppointmentSuccessPage />} />
+        <Route
+          path="randevumu-bul"
+          element={<NotImplementedPage label="Randevumu Bul" phase="FAZ 4" />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

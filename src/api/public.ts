@@ -1,17 +1,21 @@
 import { api } from "./client";
 import type {
+  AvailableSlotsDto,
+  CreateAppointmentDto,
+  CreatedResponse,
   PagedResult,
   PublicBarberDetailDto,
   PublicBarberDto,
   PublicBarbersQuery,
   PublicServiceDto,
   PublicServicesQuery,
+  SlotQueryDto,
 } from "./types";
 
 /**
  * Public (anonim) endpoint wrapper'ları (Bölüm 6).
- * FAZ 2 kapsamında sadece liste/detay endpoint'leri var;
- * Slot, randevu, lookup, cancel FAZ 3-4'te eklenecek.
+ * FAZ 3'te slot hesaplama + randevu oluşturma eklendi.
+ * Lookup / cancel FAZ 4'te eklenecek.
  */
 
 function cleanQuery(q: object): Record<string, unknown> {
@@ -59,6 +63,26 @@ export const PublicApi = {
         `/api/public/services/${serviceId}/barbers`,
         { params: cleanQuery(query) },
       )
+      .then((r) => r.data);
+  },
+
+  /**
+   * POST /api/public/appointments/available-slots — Bölüm 6.5.
+   * Body: { barberId, date (YYYY-MM-DD), serviceIds }
+   */
+  getAvailableSlots(body: SlotQueryDto): Promise<AvailableSlotsDto> {
+    return api
+      .post<AvailableSlotsDto>("/api/public/appointments/available-slots", body)
+      .then((r) => r.data);
+  },
+
+  /**
+   * POST /api/public/appointments — Bölüm 6.6.
+   * 201 Created → { message, id }.
+   */
+  createAppointment(body: CreateAppointmentDto): Promise<CreatedResponse> {
+    return api
+      .post<CreatedResponse>("/api/public/appointments", body)
       .then((r) => r.data);
   },
 };

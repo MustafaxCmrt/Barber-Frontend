@@ -1,9 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { PublicApi } from "@/api/public";
 import type {
+  CreateAppointmentDto,
+  CreatedResponse,
   PublicBarbersQuery,
   PublicServicesQuery,
+  SlotQueryDto,
 } from "@/api/types";
+import type { ApiError } from "@/api/client";
 
 /**
  * Public endpoint'leri için React Query hook'ları.
@@ -21,6 +25,8 @@ export const publicKeys = {
     ["public", "services", query] as const,
   barbersByService: (serviceId: string, query: PublicBarbersQuery) =>
     ["public", "services", serviceId, "barbers", query] as const,
+  availableSlots: (body: SlotQueryDto) =>
+    ["public", "available-slots", body] as const,
 };
 
 export function usePublicBarbers(query: PublicBarbersQuery = {}) {
@@ -57,5 +63,40 @@ export function useBarbersByService(
     queryFn: () => PublicApi.listBarbersByService(serviceId as string, query),
     enabled: !!serviceId,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * POST /api/public/appointments/available-slots — Bölüm 6.5.
+ * `enabled` flag'i ile (barberId + date + en az 1 service) hazır olmadan tetiklenmez.
+ *
+ * staleTime kısa (15sn) — slotlar hızlı dolabilir, conflict durumunda
+ * `queryClient.invalidateQueries({ queryKey: publicKeys.availableSlots(...) })` ile yenilenir.
+ */
+export function useAvailableSlots(
+  body: SlotQueryDto,
+  options: { enabled?: boolean } = {},
+) {
+  const enabled =
+    (options.enabled ?? true) &&
+    !!body.barberId &&
+    !!body.date &&
+    body.serviceIds.length > 0;
+
+  return useQuery({
+    queryKey: publicKeys.availableSlots(body),
+    queryFn: () => PublicApi.getAvailableSlots(body),
+    enabled,
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * POST /api/public/appointments — Bölüm 6.6.
+ * 409 / 422 / 400 hata kararları çağıran sayfaya bırakılır (Bölüm 8.1, 8.7).
+ */
+export function useCreateAppointmentMutation() {
+  return useMutation<CreatedResponse, ApiError, CreateAppointmentDto>({
+    mutationFn: (body) => PublicApi.createAppointment(body),
   });
 }

@@ -130,7 +130,19 @@ export interface SlotQueryDto {
 export interface AvailableSlotsDto {
   date: string; // "YYYY-MM-DD"
   totalDurationMinutes: number;
-  slots: string[]; // ["09:00", "09:15", ...] TimeOnly format
+  /**
+   * O tarihte berber çalışıyor mu? Cascade: leave > schedule > shop default.
+   * false ise frontend tüm slotları CLOSED göstermelidir.
+   */
+  isWorking: boolean;
+  /** Çalışma başlangıcı, TimeOnly. Default ".NET 8" → "HH:mm:ss" döner. */
+  openTime: string;
+  /** Çalışma bitişi, TimeOnly ("HH:mm:ss" / "HH:mm"). */
+  closeTime: string;
+  /** Slot adımı (default 15). */
+  slotMinutes: number;
+  /** Müsait slotlar, TimeOnly ("HH:mm:ss" / "HH:mm"). */
+  slots: string[];
 }
 
 export interface CreateAppointmentDto {
