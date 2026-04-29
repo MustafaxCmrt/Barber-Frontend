@@ -44,3 +44,148 @@ export const createAppointmentSchema = z.object({
 });
 
 export type CreateAppointmentFormValues = z.infer<typeof createAppointmentSchema>;
+
+/**
+ * Bölüm 6.7 — lookup form şeması.
+ * Backend regex'i daha esnek (`^\+?[0-9\s\-\(\)]{7,20}$`) ama UX'te
+ * booking ile aynı 11 haneli TR formatını zorluyoruz — kullanıcı
+ * randevuyu hangi formatla aldıysa onunla sorgulayacak.
+ */
+export const lookupPhoneSchema = z.object({
+  phone: z
+    .string()
+    .regex(/^0[5][0-9]{9}$/, "Geçerli bir telefon girin (05XXXXXXXXX)"),
+});
+
+export type LookupPhoneFormValues = z.infer<typeof lookupPhoneSchema>;
+
+/**
+ * Bölüm 3.1 — admin login form.
+ * Backend FluentValidation: Username NotEmpty + MaxLength=30, Password NotEmpty.
+ */
+export const loginSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, "Kullanıcı adı zorunlu")
+    .max(30, "En fazla 30 karakter"),
+  password: z.string().min(1, "Şifre zorunlu"),
+});
+
+export type LoginFormValues = z.infer<typeof loginSchema>;
+
+/**
+ * Bölüm 3.6 — şifre değiştirme form.
+ * Backend: currentPassword NotEmpty, newPassword NotEmpty + MinLength=8.
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Mevcut şifre zorunlu"),
+    newPassword: z.string().min(8, "Yeni şifre en az 8 karakter olmalı"),
+    confirmPassword: z.string().min(1, "Yeni şifreyi tekrar girin"),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Şifreler eşleşmiyor",
+  })
+  .refine((d) => d.newPassword !== d.currentPassword, {
+    path: ["newPassword"],
+    message: "Yeni şifre mevcut şifreyle aynı olamaz",
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+
+/**
+ * Bölüm 7.1 — admin berber form (create/update ortak alanlar).
+ * Backend FluentValidation:
+ *  fullName NotEmpty + ≤50, specialty ≤200, photoUrl ≤500, bio ≤500.
+ *
+ * NOT: photoUrl URL formatına zorlanmaz (backend de string/MaxLength).
+ * Boş string opsiyonel kabul edilir; submit anında undefined'a çevrilir.
+ */
+const optionalString = (max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, `${label} en fazla ${max} karakter`)
+    .optional()
+    .or(z.literal(""));
+
+export const createBarberSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(1, "Ad soyad zorunlu")
+    .max(50, "En fazla 50 karakter"),
+  specialty: optionalString(200, "Uzmanlık"),
+  photoUrl: optionalString(500, "Foto URL"),
+  bio: optionalString(500, "Biyografi"),
+});
+
+export type CreateBarberFormValues = z.infer<typeof createBarberSchema>;
+
+export const updateBarberSchema = createBarberSchema.extend({
+  isActive: z.boolean(),
+});
+
+export type UpdateBarberFormValues = z.infer<typeof updateBarberSchema>;
+
+/**
+ * Bölüm 7.1 — izin günü ekleme.
+ * date bugün veya sonrası, reason ≤200 (opsiyonel).
+ */
+export const createLeaveSchema = z.object({
+  date: z
+    .string()
+    .min(1, "Tarih seçin")
+    .refine((v) => {
+      // YYYY-MM-DD karşılaştırması — local TZ'de
+      const today = new Date();
+      const todayStr =
+        today.getFullYear() +
+        "-" +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(today.getDate()).padStart(2, "0");
+      return v >= todayStr;
+    }, "Bugün veya sonrası olmalı"),
+  reason: optionalString(200, "Sebep"),
+});
+
+export type CreateLeaveFormValues = z.infer<typeof createLeaveSchema>;
+
+/**
+ * Bölüm 7.2 — admin hizmet form (create/update ortak alanlar).
+ * Backend FluentValidation:
+ *  name NotEmpty + ≤200, price 0-10000, durationMinutes 5-480.
+ *
+ * NOT: price ondalık sayı; durationMinutes tam sayı (dakika).
+ */
+export const createServiceSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Hizmet adı zorunlu")
+    .max(200, "En fazla 200 karakter"),
+  price: z
+    .number({
+      invalid_type_error: "Geçerli bir fiyat girin",
+    })
+    .min(0, "Fiyat 0'dan küçük olamaz")
+    .max(10000, "Fiyat en fazla 10.000"),
+  durationMinutes: z
+    .number({
+      invalid_type_error: "Geçerli bir süre girin",
+    })
+    .int("Süre tam sayı olmalı")
+    .min(5, "En az 5 dakika")
+    .max(480, "En fazla 480 dakika (8 saat)"),
+});
+
+export type CreateServiceFormValues = z.infer<typeof createServiceSchema>;
+
+export const updateServiceSchema = createServiceSchema.extend({
+  isActive: z.boolean(),
+});
+
+export type UpdateServiceFormValues = z.infer<typeof updateServiceSchema>;

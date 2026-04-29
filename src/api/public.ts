@@ -1,8 +1,12 @@
 import { api } from "./client";
 import type {
+  AppointmentLookupItemDto,
+  AppointmentLookupRequestDto,
   AvailableSlotsDto,
+  CancelAppointmentDto,
   CreateAppointmentDto,
   CreatedResponse,
+  MessageResponse,
   PagedResult,
   PublicBarberDetailDto,
   PublicBarberDto,
@@ -15,7 +19,7 @@ import type {
 /**
  * Public (anonim) endpoint wrapper'ları (Bölüm 6).
  * FAZ 3'te slot hesaplama + randevu oluşturma eklendi.
- * Lookup / cancel FAZ 4'te eklenecek.
+ * FAZ 4'te lookup + cancel eklendi.
  */
 
 function cleanQuery(q: object): Record<string, unknown> {
@@ -83,6 +87,39 @@ export const PublicApi = {
   createAppointment(body: CreateAppointmentDto): Promise<CreatedResponse> {
     return api
       .post<CreatedResponse>("/api/public/appointments", body)
+      .then((r) => r.data);
+  },
+
+  /**
+   * POST /api/public/appointments/lookup — Bölüm 6.7.
+   * Telefon eşleşmiyorsa boş array döner (404 değil — enumeration koruması).
+   * 422 LOOKUP_RATE_LIMIT: 1 dk'da 5+ sorgu.
+   */
+  lookupAppointments(
+    body: AppointmentLookupRequestDto,
+  ): Promise<AppointmentLookupItemDto[]> {
+    return api
+      .post<AppointmentLookupItemDto[]>(
+        "/api/public/appointments/lookup",
+        body,
+      )
+      .then((r) => r.data);
+  },
+
+  /**
+   * POST /api/public/appointments/{id}/cancel — Bölüm 6.8.
+   * 404 (telefon eşleşmiyor — enumeration), 422 CANCEL_WINDOW_PASSED,
+   * 422 INVALID_STATUS_TRANSITION akışlarını caller handle eder.
+   */
+  cancelAppointment(
+    id: string,
+    body: CancelAppointmentDto,
+  ): Promise<MessageResponse> {
+    return api
+      .post<MessageResponse>(
+        `/api/public/appointments/${id}/cancel`,
+        body,
+      )
       .then((r) => r.data);
   },
 };

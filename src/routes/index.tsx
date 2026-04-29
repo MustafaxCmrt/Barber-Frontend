@@ -1,16 +1,32 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LandingPage } from "@/pages/public/Landing";
 import { BarbersPage } from "@/pages/public/BarbersPage";
 import { BarberDetailPage } from "@/pages/public/BarberDetailPage";
 import { ServicesPage } from "@/pages/public/ServicesPage";
 import { AppointmentBookingPage } from "@/pages/public/AppointmentBookingPage";
 import { AppointmentSuccessPage } from "@/pages/public/AppointmentSuccessPage";
+import { LookupPage } from "@/pages/public/LookupPage";
+import { LoginPage } from "@/pages/admin/LoginPage";
+import { ChangePasswordPage } from "@/pages/admin/ChangePasswordPage";
+import { AdminPlaceholderPage } from "@/pages/admin/AdminPlaceholderPage";
+import { DashboardPage } from "@/pages/admin/DashboardPage";
+import { AppointmentsPage } from "@/pages/admin/AppointmentsPage";
+import { BarbersPage as AdminBarbersPage } from "@/pages/admin/BarbersPage";
+import { BarberFormPage } from "@/pages/admin/BarberFormPage";
+import { BarberAdminDetailPage } from "@/pages/admin/BarberAdminDetailPage";
+import { ServicesAdminPage } from "@/pages/admin/ServicesAdminPage";
 
 /**
  * Bölüm 10.6 — sayfa yapısı.
- * FAZ 3'te /randevu-al + /randevu-basarili gerçek sayfalarla değiştirildi.
- * /randevumu-bul FAZ 4'te eklenecek.
+ * FAZ 5'te /admin/* ve /admin/login eklendi (auth + protected).
+ * FAZ 6'da /admin/dashboard gerçek sayfaya bağlandı.
+ * FAZ 7'de /admin/appointments gerçek sayfaya bağlandı.
+ * FAZ 8'de /admin/barbers + alt sayfalar gerçek sayfaya bağlandı.
+ * FAZ 9'da /admin/services gerçek sayfaya bağlandı.
+ * FAZ 10 ayarlar sayfası placeholder olarak duruyor.
  */
 export function AppRoutes() {
   return (
@@ -22,28 +38,42 @@ export function AppRoutes() {
         <Route path="berberler/:id" element={<BarberDetailPage />} />
         <Route path="randevu-al" element={<AppointmentBookingPage />} />
         <Route path="randevu-basarili" element={<AppointmentSuccessPage />} />
-        <Route
-          path="randevumu-bul"
-          element={<NotImplementedPage label="Randevumu Bul" phase="FAZ 4" />}
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="randevumu-bul" element={<LookupPage />} />
       </Route>
-    </Routes>
-  );
-}
 
-function NotImplementedPage({ label, phase }: { label: string; phase: string }) {
-  return (
-    <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-      <p className="font-body text-xs tracking-[0.4em] uppercase text-oldGold-600 mb-4">
-        {phase}
-      </p>
-      <h1 className="font-display text-4xl md:text-5xl text-charcoal-900 mb-3">
-        {label}
-      </h1>
-      <p className="text-charcoal-300">
-        Bu sayfa {phase}'de yapılacak.
-      </p>
-    </div>
+      <Route path="admin/login" element={<LoginPage />} />
+
+      <Route
+        path="admin"
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="barbers" element={<AdminBarbersPage />} />
+        <Route path="barbers/new" element={<BarberFormPage />} />
+        <Route path="barbers/:id" element={<BarberAdminDetailPage />} />
+        <Route path="barbers/:id/edit" element={<BarberFormPage />} />
+        <Route path="services" element={<ServicesAdminPage />} />
+        <Route
+          path="settings"
+          element={
+            <AdminPlaceholderPage
+              label="Salon Ayarları"
+              phase="FAZ 10"
+              description="Çalışma saatleri / kapalı günler / slot süresi / limitler FAZ 10'da eklenecek."
+            />
+          }
+        />
+        <Route path="change-password" element={<ChangePasswordPage />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

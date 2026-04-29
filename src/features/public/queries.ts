@@ -1,8 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { PublicApi } from "@/api/public";
 import type {
+  AppointmentLookupItemDto,
+  AppointmentLookupRequestDto,
+  CancelAppointmentDto,
   CreateAppointmentDto,
   CreatedResponse,
+  MessageResponse,
   PublicBarbersQuery,
   PublicServicesQuery,
   SlotQueryDto,
@@ -98,5 +102,35 @@ export function useAvailableSlots(
 export function useCreateAppointmentMutation() {
   return useMutation<CreatedResponse, ApiError, CreateAppointmentDto>({
     mutationFn: (body) => PublicApi.createAppointment(body),
+  });
+}
+
+/**
+ * POST /api/public/appointments/lookup — Bölüm 6.7.
+ * Mutation kullanılıyor (query değil): enumeration koruması için cache'lemek
+ * istemiyoruz, her submit yeni fetch.
+ */
+export function useAppointmentLookupMutation() {
+  return useMutation<
+    AppointmentLookupItemDto[],
+    ApiError,
+    AppointmentLookupRequestDto
+  >({
+    mutationFn: (body) => PublicApi.lookupAppointments(body),
+  });
+}
+
+/**
+ * POST /api/public/appointments/{id}/cancel — Bölüm 6.8.
+ * Sayfa içinde re-lookup ile listeyi yeniliyoruz; bu yüzden
+ * mutation invalidateQueries çağırmıyor.
+ */
+export function useCancelAppointmentMutation() {
+  return useMutation<
+    MessageResponse,
+    ApiError,
+    { id: string; body: CancelAppointmentDto }
+  >({
+    mutationFn: ({ id, body }) => PublicApi.cancelAppointment(id, body),
   });
 }

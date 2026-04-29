@@ -137,16 +137,20 @@ api.interceptors.response.use(
     const correlationId =
       (headers?.["x-correlation-id"] as string | undefined) ?? undefined;
 
-    // Debug log — backend log'larıyla eşleşmek için
-    if (correlationId) {
+    // Debug log — her hatada detayı yaz (response body, correlationId, gönderilen body).
+    // Geliştirme sırasında 400/422 gibi hataların kaynağını anlamak için kritik.
+    // JSON.stringify ile düz metin olarak yazıyoruz — Chrome console "Object"
+    // diye katlamasın diye.
+    try {
       console.error(
-        `[API ${status}]`,
-        error.config?.method?.toUpperCase(),
-        error.config?.url,
-        "correlationId:",
-        correlationId,
-        data,
+        `[API ${status}] ${error.config?.method?.toUpperCase()} ${error.config?.url}\n` +
+          `responseBody: ${JSON.stringify(data, null, 2)}\n` +
+          `correlationId: ${correlationId ?? "—"}\n` +
+          `extensionsCode: ${code ?? "—"}\n` +
+          `requestBody: ${typeof error.config?.data === "string" ? error.config?.data : JSON.stringify(error.config?.data, null, 2)}`,
       );
+    } catch {
+      console.error(`[API ${status}]`, status, data);
     }
 
     // ---- 401 — JWT yok / expired → auto-logout ----
@@ -154,9 +158,13 @@ api.interceptors.response.use(
       const message =
         data?.errors?.auth?.[0] ??
         "Oturum süreniz doldu, lütfen tekrar giriş yapın.";
-      // Login endpoint'inde değilse logout tetikle
-      const isLoginCall = error.config?.url?.includes("/auth/login");
-      if (!isLoginCall && unauthorizedHandler) {
+      // /auth/login ve /auth/change-password endpoint'lerinde 401 "domain auth"
+      // hatasıdır (kullanıcı/şifre yanlış, mevcut şifre yanlış) — bu durumlarda
+      // session geçerli, logout etmiyoruz. Diğer 401'lerde JWT geçersiz → logout.
+      const url = error.config?.url ?? "";
+      const isAuthDomainEndpoint =
+        url.includes("/auth/login") || url.includes("/auth/change-password");
+      if (!isAuthDomainEndpoint && unauthorizedHandler) {
         unauthorizedHandler();
       }
       const apiError: ApiError = {
