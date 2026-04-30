@@ -97,6 +97,9 @@ cypress/screenshots/
 cypress/downloads/
 .vitest/
 
+# TestSprite generated tests, reports, tmp config and API keys
+testsprite_tests/
+
 
 # ---------------------------------------------------------------------
 # IDE / Editor dosyaları
