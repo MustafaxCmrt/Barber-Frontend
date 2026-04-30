@@ -36,9 +36,8 @@ export default function App() {
 
 /**
  * Bölüm 8.3 [5] — App boot kontrolü.
- * Memory-only token olduğu için sayfa yenilemesi sonrası token genelde yok.
- * Yine de defansif: token varsa /me ile doğrula. 401 dönerse interceptor
- * zaten logout tetikler.
+ * Token sessionStorage'dan hydrate edildiyse /me ile doğrula. 401 dönerse
+ * interceptor logout tetikler ve storage temizlenir.
  */
 function useAuthBootstrap() {
   useEffect(() => {

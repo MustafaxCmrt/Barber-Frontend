@@ -43,12 +43,12 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-charcoal-50 flex">
+    <div className="h-screen bg-charcoal-50 flex overflow-hidden">
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-charcoal-900 text-charcoal-100
-                    border-r border-charcoal-700/40 flex flex-col
+                    border-r border-charcoal-700/40 flex flex-col h-screen
                     transform transition-transform duration-300 ease-out
-                    md:relative md:translate-x-0
+                    md:relative md:inset-auto md:translate-x-0 md:shrink-0
                     ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
         aria-label="Admin sidebar"
       >
@@ -118,8 +118,8 @@ export function AdminLayout() {
         />
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 h-16 bg-white border-b border-charcoal-100 flex items-center justify-between px-4 md:px-8">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        <header className="shrink-0 z-30 h-16 bg-white border-b border-charcoal-100 flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center gap-3 md:hidden">
             <button
               type="button"
@@ -156,7 +156,7 @@ export function AdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>
       </div>

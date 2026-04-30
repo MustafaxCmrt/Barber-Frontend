@@ -11,13 +11,13 @@ import { AppointmentSuccessPage } from "@/pages/public/AppointmentSuccessPage";
 import { LookupPage } from "@/pages/public/LookupPage";
 import { LoginPage } from "@/pages/admin/LoginPage";
 import { ChangePasswordPage } from "@/pages/admin/ChangePasswordPage";
-import { AdminPlaceholderPage } from "@/pages/admin/AdminPlaceholderPage";
 import { DashboardPage } from "@/pages/admin/DashboardPage";
 import { AppointmentsPage } from "@/pages/admin/AppointmentsPage";
 import { BarbersPage as AdminBarbersPage } from "@/pages/admin/BarbersPage";
 import { BarberFormPage } from "@/pages/admin/BarberFormPage";
 import { BarberAdminDetailPage } from "@/pages/admin/BarberAdminDetailPage";
 import { ServicesAdminPage } from "@/pages/admin/ServicesAdminPage";
+import { SettingsPage } from "@/pages/admin/SettingsPage";
 
 /**
  * Bölüm 10.6 — sayfa yapısı.
@@ -26,7 +26,7 @@ import { ServicesAdminPage } from "@/pages/admin/ServicesAdminPage";
  * FAZ 7'de /admin/appointments gerçek sayfaya bağlandı.
  * FAZ 8'de /admin/barbers + alt sayfalar gerçek sayfaya bağlandı.
  * FAZ 9'da /admin/services gerçek sayfaya bağlandı.
- * FAZ 10 ayarlar sayfası placeholder olarak duruyor.
+ * FAZ 10'da /admin/settings gerçek sayfaya bağlandı.
  */
 export function AppRoutes() {
   return (
@@ -59,16 +59,7 @@ export function AppRoutes() {
         <Route path="barbers/:id" element={<BarberAdminDetailPage />} />
         <Route path="barbers/:id/edit" element={<BarberFormPage />} />
         <Route path="services" element={<ServicesAdminPage />} />
-        <Route
-          path="settings"
-          element={
-            <AdminPlaceholderPage
-              label="Salon Ayarları"
-              phase="FAZ 10"
-              description="Çalışma saatleri / kapalı günler / slot süresi / limitler FAZ 10'da eklenecek."
-            />
-          }
-        />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>

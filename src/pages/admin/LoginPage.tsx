@@ -13,7 +13,8 @@ import { BarbeyondLogo } from "@/components/BarbeyondLogo";
 
 /**
  * Bölüm 3.1 + 8.3 — admin login.
- * Memory-only token; başarıdan sonra önceki path'e veya /admin/dashboard'a yönlendirir.
+ * Token sessionStorage'da tutulur; refresh sonrası aynı sekmede oturum korunur.
+ * Başarıdan sonra önceki path'e veya /admin/dashboard'a yönlendirir.
  *
  * Hata akışı:
  *  - 400 → fieldErrors form'a bind

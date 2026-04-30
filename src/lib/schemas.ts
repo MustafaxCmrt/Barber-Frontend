@@ -189,3 +189,57 @@ export const updateServiceSchema = createServiceSchema.extend({
 });
 
 export type UpdateServiceFormValues = z.infer<typeof updateServiceSchema>;
+
+/**
+ * Bölüm 7.4 — salon ayarları.
+ * Backend validation:
+ *  defaultOpenTime < defaultCloseTime, slotMinutes 5-120,
+ *  maxAppointmentsPerPhonePerDay 1-20, minCancellationHoursBefore 0-72,
+ *  closedDays distinct (.NET DayOfWeek: 0=Pazar ... 6=Cumartesi).
+ */
+export const shopSettingsSchema = z
+  .object({
+    defaultOpenTime: z.string().min(1, "Açılış saati zorunlu"),
+    defaultCloseTime: z.string().min(1, "Kapanış saati zorunlu"),
+    closedDays: z
+      .array(z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4),
+        z.literal(5),
+        z.literal(6),
+      ]))
+      .refine(
+        (days) => new Set(days).size === days.length,
+        "Kapalı günler tekrarlı olamaz",
+      ),
+    slotMinutes: z
+      .number({
+        invalid_type_error: "Geçerli bir slot süresi girin",
+      })
+      .int("Slot süresi tam sayı olmalı")
+      .min(5, "En az 5 dakika")
+      .max(120, "En fazla 120 dakika"),
+    maxAppointmentsPerPhonePerDay: z
+      .number({
+        invalid_type_error: "Geçerli bir günlük limit girin",
+      })
+      .int("Günlük limit tam sayı olmalı")
+      .min(1, "En az 1")
+      .max(20, "En fazla 20"),
+    minCancellationHoursBefore: z
+      .number({
+        invalid_type_error: "Geçerli bir iptal süresi girin",
+      })
+      .int("İptal süresi tam sayı olmalı")
+      .min(0, "0'dan küçük olamaz")
+      .max(72, "En fazla 72 saat"),
+  })
+  .refine((d) => d.defaultOpenTime < d.defaultCloseTime, {
+    path: ["defaultCloseTime"],
+    message: "Kapanış saati açılıştan sonra olmalı",
+  });
+
+export type ShopSettingsFormValues = z.infer<typeof shopSettingsSchema>;

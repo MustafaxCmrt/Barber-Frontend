@@ -19,10 +19,12 @@ import type {
   PagedResult,
   ServiceDetailDto,
   ServiceSummaryDto,
+  ShopSettingsDto,
   UpdateAppointmentStatusDto,
   UpdateBarberDto,
   UpdateBarberScheduleDto,
   UpdateServiceDto,
+  UpdateShopSettingsDto,
 } from "./types";
 
 /**
@@ -30,7 +32,7 @@ import type {
  * FAZ 7 — Randevular CRUD (read + status update).
  * FAZ 8 — Berber CRUD + service assign + schedule + leaves.
  * FAZ 9 — Hizmet CRUD.
- * FAZ 10+ — Ayar wrapper'ları ileride buraya eklenecek
+ * FAZ 10 — Salon ayarları wrapper'ları eklendi
  * (Dashboard zaten src/api/dashboard.ts'te ayrı dosyada).
  */
 
@@ -231,6 +233,28 @@ export const AdminServicesApi = {
   remove(id: string): Promise<MessageResponse> {
     return api
       .delete<MessageResponse>(`/api/Services/${id}/delete`)
+      .then((r) => r.data);
+  },
+};
+
+// ============================================================
+// Salon Ayarları — Bölüm 7.4
+// ============================================================
+
+export const AdminShopSettingsApi = {
+  /** GET /api/ShopSettings */
+  get(): Promise<ShopSettingsDto> {
+    return api.get<ShopSettingsDto>("/api/ShopSettings").then((r) => r.data);
+  },
+
+  /**
+   * PUT /api/ShopSettings.
+   * Validation: open < close, slotMinutes 5-120, daily limit 1-20,
+   * cancellation window 0-72, closedDays distinct.
+   */
+  update(body: UpdateShopSettingsDto): Promise<MessageResponse> {
+    return api
+      .put<MessageResponse>("/api/ShopSettings", body)
       .then((r) => r.data);
   },
 };

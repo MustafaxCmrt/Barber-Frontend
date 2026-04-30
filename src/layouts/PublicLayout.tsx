@@ -14,7 +14,6 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Anasayfa", end: true },
   { to: "/hizmetler", label: "Hizmetler" },
   { to: "/berberler", label: "Berberler" },
-  { to: "/randevu-al", label: "Randevu Al" },
   { to: "/randevumu-bul", label: "Randevumu Bul" },
 ];
 

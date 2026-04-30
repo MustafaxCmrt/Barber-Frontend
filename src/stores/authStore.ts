@@ -2,11 +2,10 @@ import { create } from "zustand";
 import type { TokenResponseDto } from "@/api/types";
 
 /**
- * Admin auth store — Bölüm 3.2 önerisi: token MEMORY'de tutulur.
+ * Admin auth store — token sessionStorage'da tutulur.
  *
- * KRİTİK: localStorage / sessionStorage KULLANILMAZ.
- * Sayfa yenilenince token kaybolur ve kullanıcı tekrar login'e döner —
- * admin paneli için kabul edilebilir UX (XSS yüzeyini sıfıra indirir).
+ * localStorage kullanılmaz; sessionStorage sekme kapanınca temizlenir.
+ * Böylece refresh sonrası admin oturumu korunur, kalıcı cihaz oturumu açılmaz.
  */
 
 interface AuthState {
@@ -33,26 +32,75 @@ const INITIAL_STATE: AuthState = {
   isAuthenticated: false,
 };
 
+const STORAGE_KEY = "barbeyond.admin.auth";
+
+function readStoredAuth(): AuthState {
+  if (typeof window === "undefined") return INITIAL_STATE;
+
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return INITIAL_STATE;
+
+    const parsed = JSON.parse(raw) as Partial<TokenResponseDto>;
+    if (!parsed.accessToken || !parsed.expiresAtUtc || !parsed.username) {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      return INITIAL_STATE;
+    }
+
+    if (isTokenExpired(parsed.expiresAtUtc)) {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      return INITIAL_STATE;
+    }
+
+    return {
+      token: parsed.accessToken,
+      expiresAtUtc: parsed.expiresAtUtc,
+      username: parsed.username,
+      isAuthenticated: true,
+    };
+  } catch {
+    window.sessionStorage.removeItem(STORAGE_KEY);
+    return INITIAL_STATE;
+  }
+}
+
+function writeStoredAuth(response: TokenResponseDto) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(response));
+}
+
+function clearStoredAuth() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(STORAGE_KEY);
+}
+
 export const useAuthStore = create<AuthState & AuthActions>((set) => ({
-  ...INITIAL_STATE,
+  ...readStoredAuth(),
 
-  login: (response) =>
+  login: (response) => {
+    writeStoredAuth(response);
     set({
       token: response.accessToken,
       expiresAtUtc: response.expiresAtUtc,
       username: response.username,
       isAuthenticated: true,
-    }),
+    });
+  },
 
-  logout: () => set({ ...INITIAL_STATE }),
+  logout: () => {
+    clearStoredAuth();
+    set({ ...INITIAL_STATE });
+  },
 
-  updateToken: (response) =>
+  updateToken: (response) => {
+    writeStoredAuth(response);
     set({
       token: response.accessToken,
       expiresAtUtc: response.expiresAtUtc,
       username: response.username,
       isAuthenticated: true,
-    }),
+    });
+  },
 }));
 
 /**
