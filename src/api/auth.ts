@@ -1,6 +1,7 @@
 import { api } from "./client";
 import type {
   ChangePasswordDto,
+  ChangeUsernameDto,
   LoginRequestDto,
   MeResponseDto,
   MessageResponse,
@@ -29,6 +30,16 @@ export const AuthApi = {
   changePassword(dto: ChangePasswordDto): Promise<MessageResponse> {
     return api
       .put<MessageResponse>("/api/auth/change-password", dto)
+      .then((r) => r.data);
+  },
+
+  /**
+   * PUT /api/auth/change-username — Authorize(Roles="Admin").
+   * Yeni token döner; caller updateToken ile sessionStorage'ı güncellemelidir.
+   */
+  changeUsername(dto: ChangeUsernameDto): Promise<TokenResponseDto> {
+    return api
+      .put<TokenResponseDto>("/api/auth/change-username", dto)
       .then((r) => r.data);
   },
 };

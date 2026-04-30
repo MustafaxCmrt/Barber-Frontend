@@ -76,12 +76,23 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 /**
  * Bölüm 3.6 — şifre değiştirme form.
- * Backend: currentPassword NotEmpty, newPassword NotEmpty + MinLength=8.
+ * Backend kuralları (sıkılaştırıldı):
+ *  - En az 10 karakter, en fazla 128
+ *  - En az 1 büyük harf, 1 küçük harf, 1 rakam, 1 özel karakter
  */
+const strongPasswordSchema = z
+  .string()
+  .min(10, "Şifre en az 10 karakter olmalı")
+  .max(128, "Şifre en fazla 128 karakter olabilir")
+  .regex(/[A-Z]/, "En az 1 büyük harf içermeli")
+  .regex(/[a-z]/, "En az 1 küçük harf içermeli")
+  .regex(/[0-9]/, "En az 1 rakam içermeli")
+  .regex(/[^A-Za-z0-9]/, "En az 1 özel karakter içermeli");
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Mevcut şifre zorunlu"),
-    newPassword: z.string().min(8, "Yeni şifre en az 8 karakter olmalı"),
+    newPassword: strongPasswordSchema,
     confirmPassword: z.string().min(1, "Yeni şifreyi tekrar girin"),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
@@ -94,6 +105,21 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+
+/**
+ * Yeni endpoint: PUT /auth/change-username.
+ * Backend: currentPassword NotEmpty; newUsername NotEmpty + MaxLength=30.
+ */
+export const changeUsernameSchema = z.object({
+  currentPassword: z.string().min(1, "Mevcut şifre zorunlu"),
+  newUsername: z
+    .string()
+    .trim()
+    .min(1, "Yeni kullanıcı adı zorunlu")
+    .max(30, "En fazla 30 karakter"),
+});
+
+export type ChangeUsernameFormValues = z.infer<typeof changeUsernameSchema>;
 
 /**
  * Bölüm 7.1 — admin berber form (create/update ortak alanlar).

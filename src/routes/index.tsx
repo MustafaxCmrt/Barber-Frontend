@@ -11,6 +11,7 @@ import { AppointmentSuccessPage } from "@/pages/public/AppointmentSuccessPage";
 import { LookupPage } from "@/pages/public/LookupPage";
 import { LoginPage } from "@/pages/admin/LoginPage";
 import { ChangePasswordPage } from "@/pages/admin/ChangePasswordPage";
+import { ChangeUsernamePage } from "@/pages/admin/ChangeUsernamePage";
 import { DashboardPage } from "@/pages/admin/DashboardPage";
 import { AppointmentsPage } from "@/pages/admin/AppointmentsPage";
 import { BarbersPage as AdminBarbersPage } from "@/pages/admin/BarbersPage";
@@ -60,6 +61,7 @@ export function AppRoutes() {
         <Route path="barbers/:id/edit" element={<BarberFormPage />} />
         <Route path="services" element={<ServicesAdminPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="change-username" element={<ChangeUsernamePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>

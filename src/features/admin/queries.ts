@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AuthApi } from "@/api/auth";
 import type {
   ChangePasswordDto,
+  ChangeUsernameDto,
   LoginRequestDto,
   MessageResponse,
   TokenResponseDto,
@@ -28,5 +29,11 @@ export function useLoginMutation() {
 export function useChangePasswordMutation() {
   return useMutation<MessageResponse, ApiError, ChangePasswordDto>({
     mutationFn: (dto) => AuthApi.changePassword(dto),
+  });
+}
+
+export function useChangeUsernameMutation() {
+  return useMutation<TokenResponseDto, ApiError, ChangeUsernameDto>({
+    mutationFn: (dto) => AuthApi.changeUsername(dto),
   });
 }

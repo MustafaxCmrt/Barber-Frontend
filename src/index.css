@@ -22,3 +22,13 @@
     @apply font-display text-charcoal-900;
   }
 }
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

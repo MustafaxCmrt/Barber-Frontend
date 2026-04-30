@@ -144,7 +144,7 @@ export function ChangePasswordPage() {
             disabled={submitting}
             register={form.register("newPassword")}
             error={form.formState.errors.newPassword?.message}
-            hint="En az 8 karakter."
+            hint="En az 10 karakter; büyük harf, küçük harf, rakam ve özel karakter içermeli."
           />
 
           <PasswordField

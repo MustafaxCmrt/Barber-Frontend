@@ -158,12 +158,15 @@ api.interceptors.response.use(
       const message =
         data?.errors?.auth?.[0] ??
         "Oturum süreniz doldu, lütfen tekrar giriş yapın.";
-      // /auth/login ve /auth/change-password endpoint'lerinde 401 "domain auth"
-      // hatasıdır (kullanıcı/şifre yanlış, mevcut şifre yanlış) — bu durumlarda
-      // session geçerli, logout etmiyoruz. Diğer 401'lerde JWT geçersiz → logout.
+      // /auth/login, /auth/change-password ve /auth/change-username endpoint'lerinde
+      // 401 "domain auth" hatasıdır (kullanıcı/şifre yanlış, mevcut şifre yanlış)
+      // — bu durumlarda session geçerli, logout etmiyoruz.
+      // Diğer 401'lerde JWT geçersiz → logout.
       const url = error.config?.url ?? "";
       const isAuthDomainEndpoint =
-        url.includes("/auth/login") || url.includes("/auth/change-password");
+        url.includes("/auth/login") ||
+        url.includes("/auth/change-password") ||
+        url.includes("/auth/change-username");
       if (!isAuthDomainEndpoint && unauthorizedHandler) {
         unauthorizedHandler();
       }

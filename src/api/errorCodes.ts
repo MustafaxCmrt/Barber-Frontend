@@ -17,6 +17,8 @@ export const ErrorCode = {
   INVALID_STATUS_TRANSITION: "INVALID_STATUS_TRANSITION",
   INVALID_RANGE: "INVALID_RANGE",
   INVALID_LIMIT: "INVALID_LIMIT",
+  /** Login lockout: 10dk içinde 5 başarısız → 15dk kilit. */
+  ACCOUNT_LOCKED: "ACCOUNT_LOCKED",
 } as const;
 
 export type ErrorCodeValue = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -47,6 +49,8 @@ export const ERROR_CODE_MESSAGES: Record<ErrorCodeValue, string> = {
     "Geçersiz tarih aralığı seçildi.",
   INVALID_LIMIT:
     "Geçersiz limit değeri seçildi.",
+  ACCOUNT_LOCKED:
+    "Çok fazla başarısız deneme. Hesap geçici olarak kilitlendi. Yaklaşık 15 dakika sonra tekrar deneyin.",
 };
 
 /**

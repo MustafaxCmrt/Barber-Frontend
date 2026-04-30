@@ -82,6 +82,11 @@ export interface ChangePasswordDto {
   newPassword: string;
 }
 
+export interface ChangeUsernameDto {
+  currentPassword: string;
+  newUsername: string;
+}
+
 export interface MessageResponse {
   message: string;
 }

@@ -8,8 +8,11 @@ import { isTokenExpired, useAuthStore } from "@/stores/authStore";
 import { useLoginMutation } from "@/features/admin/queries";
 import { loginSchema, type LoginFormValues } from "@/lib/schemas";
 import { isApiError, type ApiError } from "@/api/client";
+import { ErrorCode } from "@/api/errorCodes";
 import { notify } from "@/lib/toast";
 import { BarbeyondLogo } from "@/components/BarbeyondLogo";
+
+const LOCKOUT_DEFAULT_SECONDS = 15 * 60;
 
 /**
  * Bölüm 3.1 + 8.3 — admin login.
@@ -30,9 +33,10 @@ export function LoginPage() {
   const mutation = useLoginMutation();
 
   const [topError, setTopError] = useState<string | null>(null);
+  const [isAccountLocked, setIsAccountLocked] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // 429 countdown
+  // 429 + 422 ACCOUNT_LOCKED countdown (saniye bazlı geri sayım için aynı timer)
   const [retryUntil, setRetryUntil] = useState<number | null>(null);
   const [tickNow, setTickNow] = useState<number>(() => Date.now());
   const intervalRef = useRef<number | null>(null);
@@ -58,6 +62,7 @@ export function LoginPage() {
     if (isLocked) return;
     if (retryUntil != null && remainingSeconds === 0) {
       setRetryUntil(null);
+      setIsAccountLocked(false);
     }
   }, [isLocked, retryUntil, remainingSeconds]);
 
@@ -98,6 +103,16 @@ export function LoginPage() {
   const handleApiError = (error: ApiError) => {
     if (error.status === 401) {
       setTopError("Kullanıcı adı veya şifre hatalı.");
+      return;
+    }
+    if (error.status === 422 && error.code === ErrorCode.ACCOUNT_LOCKED) {
+      // Backend zaten süre içeren mesaj döndürüyor — onu doğrudan göster.
+      const ruleMsg =
+        (error.problem?.errors?.rule as string[] | undefined)?.[0] ??
+        error.message;
+      setTopError(ruleMsg);
+      setIsAccountLocked(true);
+      setRetryUntil(Date.now() + LOCKOUT_DEFAULT_SECONDS * 1000);
       return;
     }
     if (error.status === 429) {
@@ -174,7 +189,9 @@ export function LoginPage() {
               >
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <p>
-                  Çok fazla deneme. {remainingSeconds} sn sonra tekrar deneyin.
+                  {isAccountLocked
+                    ? `Hesap geçici olarak kilitli. ${formatLockoutClock(remainingSeconds)} sonra tekrar deneyin.`
+                    : `Çok fazla deneme. ${remainingSeconds} sn sonra tekrar deneyin.`}
                 </p>
               </div>
             )}
@@ -263,7 +280,11 @@ export function LoginPage() {
                   Giriş yapılıyor…
                 </>
               ) : isLocked ? (
-                <>{remainingSeconds} sn bekleyin</>
+                <>
+                  {isAccountLocked
+                    ? `Kilitli — ${formatLockoutClock(remainingSeconds)}`
+                    : `${remainingSeconds} sn bekleyin`}
+                </>
               ) : (
                 "Giriş Yap"
               )}
@@ -288,4 +309,11 @@ function mapField(key: string): "username" | "password" | null {
   if (k === "username") return "username";
   if (k === "password") return "password";
   return null;
+}
+
+function formatLockoutClock(totalSeconds: number): string {
+  const safe = Math.max(0, totalSeconds);
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }

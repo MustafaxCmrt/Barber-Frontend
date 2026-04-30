@@ -8,6 +8,7 @@ import {
   Menu,
   Scissors,
   Settings,
+  User2,
   Users,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin/barbers", label: "Berberler", icon: Users },
   { to: "/admin/services", label: "Hizmetler", icon: Scissors },
   { to: "/admin/settings", label: "Ayarlar", icon: Settings },
+  { to: "/admin/change-username", label: "Kullanıcı Adı", icon: User2 },
   { to: "/admin/change-password", label: "Şifre Değiştir", icon: KeyRound },
 ];
 
@@ -64,7 +66,7 @@ export function AdminLayout() {
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
