@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useForm,
@@ -87,9 +87,71 @@ const STEPS: StepDef[] = [
   { id: 5, label: "Onay" },
 ];
 
+/**
+ * Reload sonrası kullanıcının kaldığı adımda devam edebilmesi için:
+ *  - Adım numarası: URL query param (`?step=...`). Tek kaynak hakikat.
+ *  - Form & seçim verisi: sessionStorage (sekme kapanınca silinir, PII güvenliği
+ *    makul; localStorage cross-tab leak riskli).
+ */
+const STEP_TO_SLUG: Record<Step, string> = {
+  1: "hizmet",
+  2: "berber",
+  3: "tarih",
+  4: "bilgiler",
+  5: "ozet",
+};
+
+const SLUG_TO_STEP: Record<string, Step> = {
+  hizmet: 1,
+  berber: 2,
+  tarih: 3,
+  bilgiler: 4,
+  ozet: 5,
+};
+
+const DRAFT_STORAGE_KEY = "barbeyond.bookingDraft";
+
+interface BookingDraft {
+  selectedServiceIds?: string[];
+  selectedBarberId?: string;
+  selectedDate?: string;
+  selectedSlot?: string | null;
+  customerName?: string;
+  customerPhone?: string;
+  notes?: string;
+}
+
+function loadDraft(): BookingDraft {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as BookingDraft) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDraft(patch: BookingDraft): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = loadDraft();
+    window.sessionStorage.setItem(
+      DRAFT_STORAGE_KEY,
+      JSON.stringify({ ...current, ...patch }),
+    );
+  } catch {
+    // quota / private mode — sessizce yut.
+  }
+}
+
+function clearDraft(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+}
+
 export function AppointmentBookingPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
   const initialBarberId = searchParams.get("barberId") ?? "";
@@ -98,14 +160,45 @@ export function AppointmentBookingPage() {
   const today = useMemo(() => toDateOnly(new Date()), []);
   const maxDate = useMemo(() => toDateOnly(addDays(60)), []);
 
-  const [step, setStep] = useState<Step>(1);
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
-    initialServiceId ? [initialServiceId] : [],
+  // SessionStorage'daki draft — mount anında bir kez okunur, sonraki
+  // okumalar değişen state'ten yapılır.
+  const draftRef = useRef<BookingDraft>(loadDraft());
+  const draft = draftRef.current;
+
+  // ----- Step: URL query param tek kaynak hakikat -----
+  const step: Step = SLUG_TO_STEP[searchParams.get("step") ?? ""] ?? 1;
+
+  const navigateToStep = useCallback(
+    (target: Step, options: { replace?: boolean } = {}) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("step", STEP_TO_SLUG[target]);
+          return next;
+        },
+        { replace: options.replace ?? false },
+      );
+    },
+    [setSearchParams],
   );
-  const [selectedBarberId, setSelectedBarberId] =
-    useState<string>(initialBarberId);
-  const [selectedDate, setSelectedDate] = useState<string>(today);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+
+  // ----- Wizard state: URL query param > draft > boş -----
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(() => {
+    if (initialServiceId) return [initialServiceId];
+    if (draft.selectedServiceIds && draft.selectedServiceIds.length > 0) {
+      return draft.selectedServiceIds;
+    }
+    return [];
+  });
+  const [selectedBarberId, setSelectedBarberId] = useState<string>(
+    () => initialBarberId || draft.selectedBarberId || "",
+  );
+  const [selectedDate, setSelectedDate] = useState<string>(
+    () => draft.selectedDate || today,
+  );
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(
+    () => draft.selectedSlot ?? null,
+  );
 
   const servicesQuery = usePublicServices({ Page: 1, PageSize: 50 });
   const barbersQuery = useBarbersByService(selectedServiceIds[0], {
@@ -121,14 +214,78 @@ export function AppointmentBookingPage() {
     resolver: zodResolver(createAppointmentSchema),
     mode: "onBlur",
     defaultValues: {
-      barberId: "",
-      serviceIds: [],
+      barberId: initialBarberId || draft.selectedBarberId || "",
+      serviceIds: initialServiceId
+        ? [initialServiceId]
+        : (draft.selectedServiceIds ?? []),
       startTime: "",
-      customerName: "",
-      customerPhone: "",
-      notes: "",
+      customerName: draft.customerName ?? "",
+      customerPhone: draft.customerPhone ?? "",
+      notes: draft.notes ?? "",
     },
   });
+
+  // ----- URL'de step yoksa default'a düşür (replace, history kirletme) -----
+  useEffect(() => {
+    if (!searchParams.get("step")) {
+      navigateToStep(1, { replace: true });
+    }
+    // Sadece mount'ta — sonraki render'lar URL'i zaten yönetiyor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ----- Draft persist: wizard state değişince -----
+  useEffect(() => {
+    saveDraft({
+      selectedServiceIds,
+      selectedBarberId,
+      selectedDate,
+      selectedSlot,
+    });
+  }, [selectedServiceIds, selectedBarberId, selectedDate, selectedSlot]);
+
+  // ----- Draft persist: form alanları değişince -----
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      saveDraft({
+        customerName: values.customerName ?? "",
+        customerPhone: values.customerPhone ?? "",
+        notes: values.notes ?? "",
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // ----- Adım atlama guard: önceki adımların datası eksikse uygun adıma at -----
+  useEffect(() => {
+    if (step >= 2 && selectedServiceIds.length === 0) {
+      navigateToStep(1, { replace: true });
+      return;
+    }
+    if (step >= 3 && !selectedBarberId) {
+      navigateToStep(2, { replace: true });
+      return;
+    }
+    if (step >= 4 && (!selectedDate || !selectedSlot)) {
+      navigateToStep(3, { replace: true });
+      return;
+    }
+    if (step === 5) {
+      const name = form.getValues("customerName");
+      const phone = form.getValues("customerPhone");
+      if (!name || !phone) {
+        navigateToStep(4, { replace: true });
+      }
+    }
+  }, [
+    step,
+    selectedServiceIds,
+    selectedBarberId,
+    selectedDate,
+    selectedSlot,
+    form,
+    navigateToStep,
+  ]);
 
   // ----- Hidden field sync: wizard state → form -----
   useEffect(() => {
@@ -170,7 +327,7 @@ export function AppointmentBookingPage() {
 
   // ----- Step navigation -----
   const goPrev = () => {
-    if (step > 1) setStep((s) => (s - 1) as Step);
+    if (step > 1) navigateToStep((step - 1) as Step);
   };
 
   const goNext = async () => {
@@ -197,7 +354,7 @@ export function AppointmentBookingPage() {
       ]);
       if (!ok) return;
     }
-    setStep((s) => (s < 5 ? ((s + 1) as Step) : s));
+    if (step < 5) navigateToStep((step + 1) as Step);
   };
 
   // ----- Toggle service (multi-select) -----
@@ -231,7 +388,7 @@ export function AppointmentBookingPage() {
         }
       }
       if (bound) {
-        setStep(4);
+        navigateToStep(4, { replace: true });
         return;
       }
       notify.error(error.message);
@@ -249,7 +406,7 @@ export function AppointmentBookingPage() {
         }),
       });
       setSelectedSlot(null);
-      setStep(3);
+      navigateToStep(3, { replace: true });
       return;
     }
 
@@ -271,12 +428,12 @@ export function AppointmentBookingPage() {
           }),
         });
         setSelectedSlot(null);
-        setStep(3);
+        navigateToStep(3, { replace: true });
       } else if (
         code === ErrorCode.SERVICE_NOT_OFFERED ||
         code === ErrorCode.BARBER_INACTIVE
       ) {
-        setStep(2);
+        navigateToStep(2, { replace: true });
       }
       return;
     }
@@ -302,6 +459,7 @@ export function AppointmentBookingPage() {
 
     mutation.mutate(body, {
       onSuccess: (response) => {
+        clearDraft();
         navigate(`/randevu-basarili?id=${response.id}`, { replace: true });
       },
       onError: (error) => {
@@ -319,21 +477,21 @@ export function AppointmentBookingPage() {
   ) => {
     if (errors.serviceIds) {
       notify.error("Hizmet seçimi eksik");
-      setStep(1);
+      navigateToStep(1, { replace: true });
       return;
     }
     if (errors.barberId) {
       notify.error("Berber seçimi eksik");
-      setStep(2);
+      navigateToStep(2, { replace: true });
       return;
     }
     if (errors.startTime) {
       notify.error("Geçerli bir tarih ve saat seçin");
-      setStep(3);
+      navigateToStep(3, { replace: true });
       return;
     }
     if (errors.customerName || errors.customerPhone || errors.notes) {
-      setStep(4);
+      navigateToStep(4, { replace: true });
     }
   };
 

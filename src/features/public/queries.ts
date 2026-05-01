@@ -76,6 +76,13 @@ export function useBarbersByService(
  *
  * staleTime kısa (15sn) — slotlar hızlı dolabilir, conflict durumunda
  * `queryClient.invalidateQueries({ queryKey: publicKeys.availableSlots(...) })` ile yenilenir.
+ *
+ * Slot ekranında müşteri 1-3 dk kalabiliyor; bu sürede başkası slot alabilir
+ * veya iptal edebilir. Otomatik tazeleme:
+ *  - refetchInterval: 30sn (sessizce arkadan)
+ *  - refetchOnWindowFocus: true — sekmeden ayrılıp dönünce anında yenile.
+ *    main.tsx'te global default false; slot için açıkça override ediyoruz.
+ *  - refetchIntervalInBackground default false — sekme arka plandayken durur.
  */
 export function useAvailableSlots(
   body: SlotQueryDto,
@@ -92,6 +99,8 @@ export function useAvailableSlots(
     queryFn: () => PublicApi.getAvailableSlots(body),
     enabled,
     staleTime: 15_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 
