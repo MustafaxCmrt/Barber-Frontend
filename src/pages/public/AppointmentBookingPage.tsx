@@ -29,6 +29,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { StepIndicator, type StepDef } from "@/components/StepIndicator";
 import { SlotGrid } from "@/components/SlotGrid";
 import { BarberPickCard } from "@/components/BarberPickCard";
+import { AvailabilityCalendar } from "@/components/AvailabilityCalendar";
 import {
   publicKeys,
   useBarbersByService,
@@ -833,28 +834,20 @@ function DateSlotStep({
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="appointment-date"
-            className="block text-sm font-medium text-charcoal-500 mb-1.5"
-          >
-            Tarih
-          </label>
-          <input
-            id="appointment-date"
-            type="date"
-            value={date}
-            min={minDate}
-            max={maxDate}
-            onChange={(e) => onDateChange(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal-100 bg-white text-charcoal-900
-                       focus:outline-none focus:border-oldGold-500 focus:ring-2 focus:ring-oldGold-500/30 transition-colors"
-          />
-          <p className="text-xs text-charcoal-300 mt-1">
-            Bugünden itibaren 60 gün ileriye kadar.
-          </p>
-        </div>
+      <div className="space-y-2">
+        <h3 className="font-display text-lg text-charcoal-900">Tarih seçin</h3>
+        <p className="text-xs text-charcoal-300">
+          Müsait günler beyaz; kapalı veya tüm randevuları dolu günler gridir.
+          Bugünden itibaren 60 gün ileriye kadar.
+        </p>
+        <AvailabilityCalendar
+          barberId={barberId}
+          serviceIds={serviceIds}
+          selectedDate={date}
+          onSelectDate={onDateChange}
+          minDate={minDate}
+          maxDate={maxDate}
+        />
       </div>
 
       <div className="space-y-3">

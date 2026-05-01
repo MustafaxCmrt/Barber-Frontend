@@ -2,6 +2,8 @@ import { api } from "./client";
 import type {
   AppointmentLookupItemDto,
   AppointmentLookupRequestDto,
+  AvailabilityQueryDto,
+  AvailabilityRangeDto,
   AvailableSlotsDto,
   CancelAppointmentDto,
   CreateAppointmentDto,
@@ -77,6 +79,16 @@ export const PublicApi = {
   getAvailableSlots(body: SlotQueryDto): Promise<AvailableSlotsDto> {
     return api
       .post<AvailableSlotsDto>("/api/public/appointments/available-slots", body)
+      .then((r) => r.data);
+  },
+
+  /**
+   * POST /api/public/appointments/availability — takvim aralık sorgusu.
+   * Body: { barberId, serviceIds, from, to }. Aralık max 31 gün.
+   */
+  getAvailability(body: AvailabilityQueryDto): Promise<AvailabilityRangeDto> {
+    return api
+      .post<AvailabilityRangeDto>("/api/public/appointments/availability", body)
       .then((r) => r.data);
   },
 

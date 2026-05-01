@@ -132,6 +132,49 @@ export interface SlotQueryDto {
   serviceIds: string[];
 }
 
+/**
+ * POST /api/public/appointments/availability — takvim view'ı için aralık sorgusu.
+ *
+ * Backend kuralları:
+ *  - serviceIds: 1..10 arası, distinct
+ *  - from: bugün veya sonrası (DateOnly, "YYYY-MM-DD")
+ *  - to: from'dan sonra/eşit, max 30 gün sonrası (yani [from, to] aralığı 31 günü
+ *    geçemez)
+ *
+ * Frontend de aynı kuralları UI'da uygulamalı (defensive).
+ */
+export interface AvailabilityQueryDto {
+  barberId: string;
+  serviceIds: string[];
+  from: string; // "YYYY-MM-DD"
+  to: string; // "YYYY-MM-DD"
+}
+
+/**
+ * Tek günün availability özeti.
+ *  - isOpen=false → "closed" (kapalı/izinli; gri, tooltip ayrı)
+ *  - isOpen=true && hasFreeSlot=false → "full" (gri, tooltip "tüm randevular dolu")
+ *  - isOpen=true && hasFreeSlot=true → "available" (tıklanabilir)
+ *
+ * open/close TimeOnly ("HH:mm:ss"), gün kapalıysa null.
+ */
+export interface AvailabilityDayDto {
+  date: string; // "YYYY-MM-DD"
+  isOpen: boolean;
+  open: string | null;
+  close: string | null;
+  hasFreeSlot: boolean;
+}
+
+export interface AvailabilityRangeDto {
+  barberId: string;
+  from: string;
+  to: string;
+  slotMinutes: number;
+  totalDurationMinutes: number;
+  days: AvailabilityDayDto[];
+}
+
 export interface AvailableSlotsDto {
   date: string; // "YYYY-MM-DD"
   totalDurationMinutes: number;
