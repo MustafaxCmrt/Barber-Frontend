@@ -7,7 +7,7 @@ import type {
   AvailableSlotsDto,
   CancelAppointmentDto,
   CreateAppointmentDto,
-  CreatedResponse,
+  CreateAppointmentResultDto,
   MessageResponse,
   PagedResult,
   PublicBarberDetailDto,
@@ -93,12 +93,15 @@ export const PublicApi = {
   },
 
   /**
-   * POST /api/public/appointments — Bölüm 6.6.
-   * 201 Created → { message, id }.
+   * POST /api/public/appointments — Pre-prod sözleşmesi (Bölüm 1.1).
+   * 201 Created → CreateAppointmentResultDto { id, cancellationCode, message }.
+   * `cancellationCode` bir kez döner — FE kullanıcıya kalıcı şekilde göstermeli.
    */
-  createAppointment(body: CreateAppointmentDto): Promise<CreatedResponse> {
+  createAppointment(
+    body: CreateAppointmentDto,
+  ): Promise<CreateAppointmentResultDto> {
     return api
-      .post<CreatedResponse>("/api/public/appointments", body)
+      .post<CreateAppointmentResultDto>("/api/public/appointments", body)
       .then((r) => r.data);
   },
 

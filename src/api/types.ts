@@ -210,8 +210,25 @@ export interface AppointmentLookupRequestDto {
   phone: string;
 }
 
+/**
+ * Pre-prod sözleşmesi (Bölüm 1.1) — POST /api/public/appointments başarı response'u.
+ * `cancellationCode` sadece **bir kez** döner; FE kullanıcıya kalıcı olarak göstermek
+ * (kopyalanabilir kart/modal) ve **tekrar göstermemek** zorunda. Backend hash'i
+ * tutar, ham hali geri ulaşılamaz. 6 haneli rakam, "0"la başlayabilir → string.
+ */
+export interface CreateAppointmentResultDto {
+  id: string;
+  cancellationCode: string;
+  message: string;
+}
+
+/**
+ * Pre-prod sözleşmesi (Bölüm 1.2) — iptal request body'si.
+ * `code` randevu oluşturma response'unda dönen 6 haneli iptal kodudur (^\d{6}$).
+ */
 export interface CancelAppointmentDto {
   phone: string;
+  code: string;
 }
 
 /**

@@ -134,8 +134,11 @@ api.interceptors.response.use(
 
     const { status, data, headers } = error.response;
     const code = data?.extensions?.code as string | undefined;
+    // Pre-prod 1.3 — `traceId` her hata response'unda body'de (top-level) döner.
+    // Header `X-Correlation-Id` de set ediliyor; ikisinden hangisi varsa kullan.
     const correlationId =
-      (headers?.["x-correlation-id"] as string | undefined) ?? undefined;
+      (headers?.["x-correlation-id"] as string | undefined) ??
+      (typeof data?.traceId === "string" ? (data.traceId as string) : undefined);
 
     // Debug log — her hatada detayı yaz (response body, correlationId, gönderilen body).
     // Geliştirme sırasında 400/422 gibi hataların kaynağını anlamak için kritik.
@@ -232,13 +235,16 @@ api.interceptors.response.use(
 
     // ---- 409 — Conflict (slot çakışması, izin tekrarı) ----
     if (status === 409) {
-      const message =
-        firstErrorMessage(data) ??
-        data?.title ??
-        "Çakışma oluştu, listeyi yenileyip tekrar deneyin.";
-      // Toast'lamayı caller'a bırakıyoruz çünkü slot conflict'te farklı UX gerekebilir.
+      // Pre-prod 1.7 — code'lu 409: APPOINTMENT_SLOT_TAKEN.
+      // Caller switch/case ile UX kararını verir (slot conflict → Step 3 + invalidate).
+      const message = code
+        ? getErrorMessage(code)
+        : (firstErrorMessage(data) ??
+          data?.title ??
+          "Çakışma oluştu, listeyi yenileyip tekrar deneyin.");
       return Promise.reject({
         status,
+        code,
         message,
         problem: data,
         correlationId,

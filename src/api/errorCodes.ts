@@ -19,6 +19,14 @@ export const ErrorCode = {
   INVALID_LIMIT: "INVALID_LIMIT",
   /** Login lockout: 10dk içinde 5 başarısız → 15dk kilit. */
   ACCOUNT_LOCKED: "ACCOUNT_LOCKED",
+  /** Pre-prod 1.7 — 409 slot çakışması (3 yerden gelir: pre-check, tx-final, SQL race). */
+  APPOINTMENT_SLOT_TAKEN: "APPOINTMENT_SLOT_TAKEN",
+  /** Pre-prod 1.7 — 422 iptal: 5 yanlış kod sonrası 1 saatlik lockout. */
+  APPOINTMENT_CANCEL_LOCKED: "APPOINTMENT_CANCEL_LOCKED",
+  /** Pre-prod 1.7 — 422 iptal: eski randevu (kod özelliği öncesi), berberle iletişim gerekir. */
+  APPOINTMENT_CANCEL_NO_CODE: "APPOINTMENT_CANCEL_NO_CODE",
+  /** Pre-prod 1.7 — 422 iptal: kod yanlış (deneme sayacı +1). */
+  APPOINTMENT_CANCEL_INVALID_CODE: "APPOINTMENT_CANCEL_INVALID_CODE",
 } as const;
 
 export type ErrorCodeValue = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -51,6 +59,14 @@ export const ERROR_CODE_MESSAGES: Record<ErrorCodeValue, string> = {
     "Geçersiz limit değeri seçildi.",
   ACCOUNT_LOCKED:
     "Çok fazla başarısız deneme. Hesap geçici olarak kilitlendi. Yaklaşık 15 dakika sonra tekrar deneyin.",
+  APPOINTMENT_SLOT_TAKEN:
+    "Bu slot az önce başkası tarafından alındı. Lütfen başka bir saat seçin.",
+  APPOINTMENT_CANCEL_LOCKED:
+    "Çok fazla yanlış deneme. Lütfen 1 saat sonra tekrar deneyin.",
+  APPOINTMENT_CANCEL_NO_CODE:
+    "Bu randevu telefondan iptal edilemiyor. Lütfen berberle iletişime geçin.",
+  APPOINTMENT_CANCEL_INVALID_CODE:
+    "Geçersiz iptal kodu. Lütfen kontrol edip tekrar deneyin.",
 };
 
 /**

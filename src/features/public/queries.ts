@@ -6,7 +6,7 @@ import type {
   AvailabilityQueryDto,
   CancelAppointmentDto,
   CreateAppointmentDto,
-  CreatedResponse,
+  CreateAppointmentResultDto,
   MessageResponse,
   PublicBarbersQuery,
   PublicServicesQuery,
@@ -172,11 +172,16 @@ function daysBetween(fromIso: string, toIso: string): number {
 }
 
 /**
- * POST /api/public/appointments — Bölüm 6.6.
+ * POST /api/public/appointments — Pre-prod sözleşmesi (Bölüm 1.1).
+ * 201 → CreateAppointmentResultDto (id + cancellationCode + message).
  * 409 / 422 / 400 hata kararları çağıran sayfaya bırakılır (Bölüm 8.1, 8.7).
  */
 export function useCreateAppointmentMutation() {
-  return useMutation<CreatedResponse, ApiError, CreateAppointmentDto>({
+  return useMutation<
+    CreateAppointmentResultDto,
+    ApiError,
+    CreateAppointmentDto
+  >({
     mutationFn: (body) => PublicApi.createAppointment(body),
   });
 }

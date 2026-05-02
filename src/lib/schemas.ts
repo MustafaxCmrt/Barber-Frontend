@@ -60,6 +60,21 @@ export const lookupPhoneSchema = z.object({
 export type LookupPhoneFormValues = z.infer<typeof lookupPhoneSchema>;
 
 /**
+ * Pre-prod sözleşmesi (Bölüm 1.2 + 9.3) — iptal kodu doğrulaması.
+ * Backend regex: `^\d{6}$` (tam 6 hane, "0" ile başlayabilir).
+ * Telefon zaten lookup adımında alındığı için sadece `code` doğrulanır.
+ */
+export const cancelAppointmentSchema = z.object({
+  code: z
+    .string()
+    .regex(/^\d{6}$/, "İptal kodu 6 haneli rakam olmalı"),
+});
+
+export type CancelAppointmentFormValues = z.infer<
+  typeof cancelAppointmentSchema
+>;
+
+/**
  * Bölüm 3.1 — admin login form.
  * Backend FluentValidation: Username NotEmpty + MaxLength=30, Password NotEmpty.
  */

@@ -396,9 +396,13 @@ export function AppointmentBookingPage() {
       return;
     }
 
-    // 409 — slot conflict (Bölüm 8.7)
+    // 409 — slot conflict (Pre-prod 1.7: APPOINTMENT_SLOT_TAKEN code'u eklendi)
     if (error.status === 409) {
-      notify.error("Bu slot az önce başkası tarafından alındı");
+      const msg =
+        error.code === ErrorCode.APPOINTMENT_SLOT_TAKEN
+          ? "Bu slot az önce başkası tarafından alındı. Başka bir saat seçin."
+          : "Bu slot az önce başkası tarafından alındı";
+      notify.error(msg);
       queryClient.invalidateQueries({
         queryKey: publicKeys.availableSlots({
           barberId: selectedBarberId,
@@ -461,7 +465,21 @@ export function AppointmentBookingPage() {
     mutation.mutate(body, {
       onSuccess: (response) => {
         clearDraft();
-        navigate(`/randevu-basarili?id=${response.id}`, { replace: true });
+        // Pre-prod 1.1: cancellationCode bir kez döner — URL'e koymuyoruz
+        // (paylaşım/bookmark riski). React Router state ile aktarıyoruz; refresh
+        // dayanıklılığı için sessionStorage'a da yazıyoruz, success page okuyup siler.
+        try {
+          window.sessionStorage.setItem(
+            `barbeyond.cancellationCode.${response.id}`,
+            response.cancellationCode,
+          );
+        } catch {
+          // quota / private mode — sessizce yut, navigate state hâlâ taşır.
+        }
+        navigate(`/randevu-basarili?id=${response.id}`, {
+          replace: true,
+          state: { cancellationCode: response.cancellationCode },
+        });
       },
       onError: (error) => {
         if (isApiError(error)) {
