@@ -81,7 +81,7 @@ export function isFieldErrors(value: unknown): value is FieldErrors {
 // ============================================================
 
 const baseURL =
-  (import.meta.env.VITE_API_BASE as string) || "http://localhost:5157";
+  (import.meta.env.VITE_API_BASE as string | undefined) || "";
 
 export const api: AxiosInstance = axios.create({
   baseURL,

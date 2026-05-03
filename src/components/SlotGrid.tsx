@@ -146,7 +146,7 @@ interface SlotButtonProps {
 
 function SlotButton({
   time,
-  statusKey,
+  statusKey: _statusKey,
   label,
   color,
   selectable,

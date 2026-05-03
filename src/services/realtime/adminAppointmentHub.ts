@@ -42,11 +42,9 @@ const reconnectedHandlers = new Set<ReconnectedHandler>();
 const authErrorHandlers = new Set<AuthErrorHandler>();
 
 function buildConnection(getToken: () => string | null): HubConnection {
-  // Aynı default'u axios client (api/client.ts) kullanıyor — env yoksa
-  // dev backend'i. Yoksa relative URL olur ve Vite'ın 5173 portuna düşer.
   const baseUrl =
     (import.meta.env.VITE_API_BASE as string | undefined) ||
-    "http://localhost:5157";
+    "";
   const hubUrl = `${baseUrl}/hubs/admin-appointments`;
 
   const conn = new HubConnectionBuilder()
