@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { CalendarDays, Clock, Scissors, X } from "lucide-react";
 import {
   formatDuration,
-  formatLongLocalDateTime,
+  formatLocalDateTime,
+  formatTime,
   formatMoney,
   isCancelable,
 } from "@/lib/formatters";
@@ -45,6 +46,7 @@ export function AppointmentLookupCard({ appointment, onCancelClick }: Props) {
   const {
     barberName,
     startTime,
+    endTime,
     totalPrice,
     totalDurationMinutes,
     status,
@@ -90,7 +92,7 @@ export function AppointmentLookupCard({ appointment, onCancelClick }: Props) {
           <div>
             <dt className="text-xs text-charcoal-300">Tarih & Saat</dt>
             <dd className="text-charcoal-900">
-              {formatLongLocalDateTime(startTime)}
+              {formatLocalDateTime(startTime)} – {formatTime(endTime)}
             </dd>
           </div>
         </div>

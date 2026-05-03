@@ -175,22 +175,47 @@ export interface AvailabilityRangeDto {
   days: AvailabilityDayDto[];
 }
 
+export interface SlotItemDto {
+  time: string;
+  status: SlotStatusValue;
+}
+
+export const SlotStatus = {
+  Available: 0,
+  Booked: 1,
+  DoesNotFit: 2,
+  Past: 3,
+} as const;
+
+export type SlotStatusValue = (typeof SlotStatus)[keyof typeof SlotStatus];
+
+export type SlotStatusName = keyof typeof SlotStatus;
+
+export const SLOT_STATUS_NAMES: Record<SlotStatusValue, SlotStatusName> = {
+  0: "Available",
+  1: "Booked",
+  2: "DoesNotFit",
+  3: "Past",
+};
+
+export const SLOT_STATUS: Record<
+  SlotStatusValue,
+  { key: string; label: string; color: "green" | "red" | "gray"; selectable: boolean }
+> = {
+  0: { key: "available", label: "Müsait", color: "green", selectable: true },
+  1: { key: "booked", label: "Dolu", color: "red", selectable: false },
+  2: { key: "doesNotFit", label: "Kapalı", color: "gray", selectable: false },
+  3: { key: "past", label: "Kapalı", color: "gray", selectable: false },
+};
+
 export interface AvailableSlotsDto {
-  date: string; // "YYYY-MM-DD"
+  date: string;
   totalDurationMinutes: number;
-  /**
-   * O tarihte berber çalışıyor mu? Cascade: leave > schedule > shop default.
-   * false ise frontend tüm slotları CLOSED göstermelidir.
-   */
   isWorking: boolean;
-  /** Çalışma başlangıcı, TimeOnly. Default ".NET 8" → "HH:mm:ss" döner. */
   openTime: string;
-  /** Çalışma bitişi, TimeOnly ("HH:mm:ss" / "HH:mm"). */
   closeTime: string;
-  /** Slot adımı (default 15). */
   slotMinutes: number;
-  /** Müsait slotlar, TimeOnly ("HH:mm:ss" / "HH:mm"). */
-  slots: string[];
+  slots: SlotItemDto[];
 }
 
 export interface CreateAppointmentDto {
