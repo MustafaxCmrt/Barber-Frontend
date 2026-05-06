@@ -76,7 +76,7 @@ function CreateBarberForm() {
     const body: CreateBarberDto = {
       fullName: values.fullName,
       specialty: emptyToUndefined(values.specialty),
-      photoUrl: emptyToUndefined(values.photoUrl),
+      photoUrl: emptyToNull(values.photoUrl),
       bio: emptyToUndefined(values.bio),
     };
     mutation.mutate(body, {
@@ -315,7 +315,7 @@ function BarberFormFields<
       <Field
         label="Foto URL"
         error={f.formState.errors.photoUrl?.message}
-        hint="Boş bırakılırsa otomatik avatar kullanılır."
+        hint="Boş bırakılırsa fotoğraf eklenmez."
       >
         <div className="flex items-start gap-4">
           <input

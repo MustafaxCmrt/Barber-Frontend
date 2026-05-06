@@ -1,36 +1,27 @@
 /**
- * Berber fotoğrafları için fallback (Bölüm 10.4).
- * Backend `photoUrl` null gelirse buradan deterministik bir görsel seçilir.
- *
- * Strateji:
- *  1) `i.pravatar.cc` — her seed için garantili gerçek insan portresi döner.
- *     Aynı seed → aynı görsel (deterministik), 800x800 px.
- *     Kartın aspect-[3/4] alanı için yeterli.
- *  2) `onError` halinde alternate seed denenir.
- *
- * Not: Backend'den photoUrl gelse bile bozuk olabilir → BarberCard `onError`
- * handler'ı bu fallback'e düşer.
+ * Berber fotoğrafları için nötr fallback.
+ * Backend `photoUrl` null dönerse veya URL yüklenemezse rastgele insan fotoğrafı
+ * yerine aynı placeholder kullanılır.
  */
 
-const PRAVATAR_BASE = "https://i.pravatar.cc/800";
-
-/** Seed'den deterministik insan portresi URL'i. */
-export function pickBarberFallback(seed: string): string {
-  const safe = encodeURIComponent(seed || "barbeyond-default");
-  return `${PRAVATAR_BASE}?u=${safe}`;
-}
+const BARBER_PHOTO_PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#F4F1EA"/>
+  <circle cx="400" cy="304" r="112" fill="#D4AF37" opacity="0.34"/>
+  <path d="M190 716c32-134 116-218 210-218s178 84 210 218H190z" fill="#1A1A1A" opacity="0.18"/>
+  <path d="M260 156c42-42 89-63 140-63s98 21 140 63" fill="none" stroke="#1A1A1A" stroke-width="28" stroke-linecap="round" opacity="0.18"/>
+</svg>
+`)}`;
 
 export function getBarberPhoto(
   photoUrl: string | null | undefined,
-  seed: string,
+  _seed: string,
 ): string {
-  return photoUrl && photoUrl.length > 0 ? photoUrl : pickBarberFallback(seed);
+  const trimmed = photoUrl?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : BARBER_PHOTO_PLACEHOLDER;
 }
 
-/**
- * Görsel yüklenmezse (404, CORS, network) çağrılır — farklı bir seed ile yeniden dener.
- * Sonsuz loop'u önlemek için <img>'da data-fallback flag kullanıyoruz.
- */
-export function getBarberPhotoOnError(seed: string): string {
-  return pickBarberFallback(`${seed}-alt`);
+/** Görsel yüklenmezse (404, CORS, network) nötr placeholder'a düşer. */
+export function getBarberPhotoOnError(_seed: string): string {
+  return BARBER_PHOTO_PLACEHOLDER;
 }

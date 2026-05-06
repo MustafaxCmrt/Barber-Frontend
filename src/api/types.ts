@@ -306,7 +306,7 @@ export interface BarberDetailDto {
 export interface CreateBarberDto {
   fullName: string;
   specialty?: string;
-  photoUrl?: string;
+  photoUrl: string | null;
   bio?: string;
 }
 

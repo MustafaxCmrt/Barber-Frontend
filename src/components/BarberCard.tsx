@@ -11,7 +11,7 @@ interface BarberCardProps {
 /**
  * Berber kartı — Bölüm 10.4 KRİTİK kuralı:
  * Default grayscale → hover'da grayscale-0 + scale-110 (500ms ease-out).
- * Photo URL null gelirse imageFallbacks'tan deterministik unsplash görseli.
+ * Photo URL null gelirse imageFallbacks'tan nötr placeholder kullanılır.
  */
 export function BarberCard({ barber, delayIndex = 0 }: BarberCardProps) {
   const photo = getBarberPhoto(barber.photoUrl, barber.id || barber.fullName);

@@ -142,7 +142,7 @@ export type ChangeUsernameFormValues = z.infer<typeof changeUsernameSchema>;
  *  fullName NotEmpty + ≤50, specialty ≤200, photoUrl ≤500, bio ≤500.
  *
  * NOT: photoUrl URL formatına zorlanmaz (backend de string/MaxLength).
- * Boş string opsiyonel kabul edilir; submit anında undefined'a çevrilir.
+ * Boş string opsiyonel kabul edilir; submit anında create photoUrl null gönderir.
  */
 const optionalString = (max: number, label: string) =>
   z
