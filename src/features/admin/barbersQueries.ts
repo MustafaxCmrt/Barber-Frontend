@@ -89,7 +89,7 @@ export function useUpdateBarberMutation() {
     mutationFn: ({ id, body }) => AdminBarbersApi.update(id, body),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: adminBarbersKeys.all });
-      qc.invalidateQueries({ queryKey: adminBarbersKeys.detail(vars.id) });
+      qc.removeQueries({ queryKey: adminBarbersKeys.detail(vars.id) });
       invalidatePublicBarbers(qc);
     },
   });

@@ -98,6 +98,12 @@ export const api: AxiosInstance = axios.create({
 // ============================================================
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (isFormDataPayload(config.data)) {
+    const headers = AxiosHeaders.from(config.headers);
+    headers.delete("Content-Type");
+    config.headers = headers;
+  }
+
   const token = tokenProvider();
   if (token) {
     if (!config.headers) {
@@ -315,4 +321,8 @@ function firstErrorMessage(problem: ProblemDetails | undefined): string | null {
     }
   }
   return null;
+}
+
+function isFormDataPayload(value: unknown): value is FormData {
+  return typeof FormData !== "undefined" && value instanceof FormData;
 }

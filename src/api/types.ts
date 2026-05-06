@@ -303,20 +303,9 @@ export interface BarberDetailDto {
   services: BarberServiceDto[];
 }
 
-export interface CreateBarberDto {
-  fullName: string;
-  specialty?: string;
-  photoUrl: string | null;
-  bio?: string;
-}
+export type CreateBarberDto = FormData;
 
-export interface UpdateBarberDto {
-  fullName: string;
-  specialty?: string | null;
-  photoUrl?: string | null;
-  bio?: string | null;
-  isActive: boolean;
-}
+export type UpdateBarberDto = FormData;
 
 export interface AssignServicesDto {
   serviceIds: string[];

@@ -136,14 +136,6 @@ export const changeUsernameSchema = z.object({
 
 export type ChangeUsernameFormValues = z.infer<typeof changeUsernameSchema>;
 
-/**
- * Bölüm 7.1 — admin berber form (create/update ortak alanlar).
- * Backend FluentValidation:
- *  fullName NotEmpty + ≤50, specialty ≤200, photoUrl ≤500, bio ≤500.
- *
- * NOT: photoUrl URL formatına zorlanmaz (backend de string/MaxLength).
- * Boş string opsiyonel kabul edilir; submit anında create photoUrl null gönderir.
- */
 const optionalString = (max: number, label: string) =>
   z
     .string()
@@ -152,6 +144,59 @@ const optionalString = (max: number, label: string) =>
     .optional()
     .or(z.literal(""));
 
+/**
+ * Bölüm 7.1 — admin berber form (create/update ortak alanlar).
+ * Backend artık fotoğrafı multipart/form-data `Photo` dosyası olarak alıyor.
+ */
+export const BARBER_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+export const BARBER_PHOTO_ACCEPT =
+  ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+
+const BARBER_PHOTO_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const BARBER_PHOTO_ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+function isBrowserFile(value: unknown): value is File {
+  return typeof File !== "undefined" && value instanceof File;
+}
+
+export function validateBarberPhotoFile(file: File): string | null {
+  if (file.size === 0) return "Fotoğraf boş olamaz.";
+  if (file.size > BARBER_PHOTO_MAX_BYTES) {
+    return "Fotoğraf en fazla 5 MB olabilir.";
+  }
+
+  const lowerName = file.name.toLowerCase();
+  const hasAllowedExtension = BARBER_PHOTO_ALLOWED_EXTENSIONS.some((ext) =>
+    lowerName.endsWith(ext),
+  );
+  if (!hasAllowedExtension) {
+    return "Fotoğraf uzantısı sadece .jpg, .jpeg, .png veya .webp olabilir.";
+  }
+
+  if (!BARBER_PHOTO_ALLOWED_MIME_TYPES.includes(file.type)) {
+    return "Fotoğraf tipi sadece JPEG, PNG veya WebP olabilir.";
+  }
+
+  return null;
+}
+
+const optionalBarberPhotoSchema = z
+  .custom<File | null | undefined>(
+    (value) => value == null || isBrowserFile(value),
+    { message: "Geçerli bir fotoğraf dosyası seçin" },
+  )
+  .superRefine((file, ctx) => {
+    if (!file || !isBrowserFile(file)) return;
+    const error = validateBarberPhotoFile(file);
+    if (error) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+    }
+  });
+
 export const createBarberSchema = z.object({
   fullName: z
     .string()
@@ -159,7 +204,7 @@ export const createBarberSchema = z.object({
     .min(1, "Ad soyad zorunlu")
     .max(50, "En fazla 50 karakter"),
   specialty: optionalString(200, "Uzmanlık"),
-  photoUrl: optionalString(500, "Foto URL"),
+  photo: optionalBarberPhotoSchema,
   bio: optionalString(500, "Biyografi"),
 });
 

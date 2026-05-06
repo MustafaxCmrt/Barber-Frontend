@@ -303,7 +303,6 @@ function InfoTab({ data }: { data: BarberDetailDto }) {
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         <Field label="Ad Soyad" value={data.fullName} />
         <Field label="Uzmanlık" value={data.specialty ?? "—"} />
-        <Field label="Foto URL" value={data.photoUrl ?? "—"} mono />
         <Field
           label="Durum"
           value={data.isActive ? "Aktif" : "Pasif"}
@@ -333,20 +332,15 @@ function InfoTab({ data }: { data: BarberDetailDto }) {
 interface FieldProps {
   label: string;
   value: string;
-  mono?: boolean;
 }
 
-function Field({ label, value, mono }: FieldProps) {
+function Field({ label, value }: FieldProps) {
   return (
     <div>
       <dt className="text-xs uppercase tracking-[0.15em] text-charcoal-300 mb-0.5">
         {label}
       </dt>
-      <dd
-        className={`text-charcoal-900 break-words ${mono ? "font-mono text-xs" : ""}`}
-      >
-        {value}
-      </dd>
+      <dd className="text-charcoal-900 break-words">{value}</dd>
     </div>
   );
 }
@@ -455,4 +449,3 @@ function ActiveBadge({ active }: { active: boolean }) {
     </span>
   );
 }
-

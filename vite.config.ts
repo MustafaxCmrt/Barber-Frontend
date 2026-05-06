@@ -1,10 +1,13 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 
-const backendTarget = process.env.BACKEND_URL ?? "http://localhost:5157";
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const backendTarget =
+    process.env.BACKEND_URL || env.VITE_API_BASE || "http://localhost:5157";
 
-export default defineConfig({
+  return {
   plugins: [react()],
   resolve: {
     alias: {
@@ -25,6 +28,10 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      "/shops": {
+        target: backendTarget,
+        changeOrigin: true,
+      },
     },
   },
   preview: {
@@ -42,6 +49,11 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      "/shops": {
+        target: backendTarget,
+        changeOrigin: true,
+      },
     },
   },
+  };
 });

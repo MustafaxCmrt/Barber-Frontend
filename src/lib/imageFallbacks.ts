@@ -18,10 +18,30 @@ export function getBarberPhoto(
   _seed: string,
 ): string {
   const trimmed = photoUrl?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed : BARBER_PHOTO_PLACEHOLDER;
+  return trimmed && trimmed.length > 0
+    ? normalizeBackendPhotoUrl(trimmed)
+    : BARBER_PHOTO_PLACEHOLDER;
 }
 
 /** Görsel yüklenmezse (404, CORS, network) nötr placeholder'a düşer. */
 export function getBarberPhotoOnError(_seed: string): string {
   return BARBER_PHOTO_PLACEHOLDER;
+}
+
+function normalizeBackendPhotoUrl(photoUrl: string): string {
+  if (typeof window === "undefined") return photoUrl;
+
+  try {
+    const url = new URL(photoUrl, window.location.origin);
+    const isLocalBackend =
+      url.hostname === "localhost" || url.hostname === "127.0.0.1";
+
+    if (isLocalBackend && url.pathname.startsWith("/shops/")) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    return photoUrl;
+  }
+
+  return photoUrl;
 }

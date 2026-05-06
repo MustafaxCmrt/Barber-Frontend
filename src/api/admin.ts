@@ -102,17 +102,17 @@ export const AdminBarbersApi = {
       .then((r) => r.data);
   },
 
-  /** POST /api/Barbers/create — 201 { message, id } */
+  /** POST /api/barbers/create — multipart/form-data, 201 { message, id } */
   create(body: CreateBarberDto): Promise<CreatedResponse> {
     return api
-      .post<CreatedResponse>("/api/Barbers/create", body)
+      .post<CreatedResponse>("/api/barbers/create", body)
       .then((r) => r.data);
   },
 
-  /** PUT /api/Barbers/{id}/update */
+  /** PUT /api/barbers/{id}/update — multipart/form-data */
   update(id: string, body: UpdateBarberDto): Promise<MessageResponse> {
     return api
-      .put<MessageResponse>(`/api/Barbers/${id}/update`, body)
+      .put<MessageResponse>(`/api/barbers/${id}/update`, body)
       .then((r) => r.data);
   },
 
