@@ -8,6 +8,8 @@ import type {
   CreateAppointmentDto,
   CreateAppointmentResultDto,
   MessageResponse,
+  PagedResult,
+  PublicBarberDto,
   PublicBarbersQuery,
   PublicServicesQuery,
   SlotQueryDto,
@@ -40,6 +42,7 @@ export function usePublicBarbers(query: PublicBarbersQuery = {}) {
   return useQuery({
     queryKey: publicKeys.barbers(query),
     queryFn: () => PublicApi.listBarbers(query),
+    select: sortPagedBarbersByDisplayOrder,
     staleTime: 60_000,
   });
 }
@@ -69,8 +72,28 @@ export function useBarbersByService(
     queryKey: publicKeys.barbersByService(serviceId ?? "", query),
     queryFn: () => PublicApi.listBarbersByService(serviceId as string, query),
     enabled: !!serviceId,
+    select: sortPagedBarbersByDisplayOrder,
     staleTime: 60_000,
   });
+}
+
+function sortPagedBarbersByDisplayOrder(
+  result: PagedResult<PublicBarberDto>,
+): PagedResult<PublicBarberDto> {
+  return {
+    ...result,
+    items: [...result.items].sort((a, b) => {
+      const aOrder = a.displayOrder;
+      const bOrder = b.displayOrder;
+      const aHasOrder = typeof aOrder === "number";
+      const bHasOrder = typeof bOrder === "number";
+
+      if (aHasOrder && bHasOrder) return aOrder - bOrder;
+      if (aHasOrder) return -1;
+      if (bHasOrder) return 1;
+      return 0;
+    }),
+  };
 }
 
 /**

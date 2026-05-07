@@ -18,6 +18,7 @@ import type {
   MessageResponse,
   PagedResult,
   UpdateBarberDto,
+  UpdateBarberDisplayOrderDto,
   UpdateBarberScheduleDto,
 } from "@/api/types";
 import type { ApiError } from "@/api/client";
@@ -118,6 +119,17 @@ export function useAssignServicesMutation() {
       qc.invalidateQueries({ queryKey: adminBarbersKeys.detail(vars.id) });
       // Aktif berber-hizmet eşlemesi public listBarbersByService'i etkiler
       qc.invalidateQueries({ queryKey: ["public", "services"] });
+    },
+  });
+}
+
+export function useUpdateBarberDisplayOrderMutation() {
+  const qc = useQueryClient();
+  return useMutation<MessageResponse, ApiError, UpdateBarberDisplayOrderDto>({
+    mutationFn: (body) => AdminBarbersApi.updateDisplayOrder(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminBarbersKeys.all });
+      invalidatePublicBarbers(qc);
     },
   });
 }

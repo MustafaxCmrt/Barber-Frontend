@@ -106,6 +106,7 @@ export interface PublicBarberDto {
   specialty: string | null;
   photoUrl: string | null;
   bio: string | null;
+  displayOrder?: number | null;
 }
 
 export interface PublicServiceDto {
@@ -281,6 +282,7 @@ export interface BarberSummaryDto {
   specialty: string | null;
   photoUrl: string | null;
   isActive: boolean;
+  displayOrder?: number | null;
 }
 
 export interface BarberServiceDto {
@@ -298,6 +300,7 @@ export interface BarberDetailDto {
   photoUrl: string | null;
   bio: string | null;
   isActive: boolean;
+  displayOrder?: number | null;
   createdAt: string; // UTC
   updatedAt: string | null; // UTC
   services: BarberServiceDto[];
@@ -309,6 +312,10 @@ export type UpdateBarberDto = FormData;
 
 export interface AssignServicesDto {
   serviceIds: string[];
+}
+
+export interface UpdateBarberDisplayOrderDto {
+  barberIds: string[];
 }
 
 export interface AdminBarbersQuery extends PagedRequest {

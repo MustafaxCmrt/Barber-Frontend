@@ -22,6 +22,7 @@ import type {
   ShopSettingsDto,
   UpdateAppointmentStatusDto,
   UpdateBarberDto,
+  UpdateBarberDisplayOrderDto,
   UpdateBarberScheduleDto,
   UpdateServiceDto,
   UpdateShopSettingsDto,
@@ -133,6 +134,15 @@ export const AdminBarbersApi = {
   ): Promise<MessageResponse> {
     return api
       .post<MessageResponse>(`/api/Barbers/${id}/services`, body)
+      .then((r) => r.data);
+  },
+
+  /** PUT /api/Barbers/display-order — müşteri tarafındaki görünüm sırası */
+  updateDisplayOrder(
+    body: UpdateBarberDisplayOrderDto,
+  ): Promise<MessageResponse> {
+    return api
+      .put<MessageResponse>("/api/Barbers/display-order", body)
       .then((r) => r.data);
   },
 
