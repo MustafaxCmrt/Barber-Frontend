@@ -144,15 +144,15 @@ export function AppointmentSuccessPage() {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-3 rounded-lg bg-oldGold-500 hover:bg-oldGold-600 text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-oldGold-500/40"
-                aria-label="Kodu kopyala"
+                className="inline-flex items-center justify-center p-3 rounded-lg bg-oldGold-500 hover:bg-oldGold-600 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-oldGold-500/40"
+                aria-label={copied ? "Kopyalandı" : "Kodu kopyala"}
+                title={copied ? "Kopyalandı" : "Kopyala"}
               >
                 {copied ? (
-                  <Check className="w-4 h-4" aria-hidden="true" />
+                  <Check className="w-5 h-5" aria-hidden="true" />
                 ) : (
-                  <Copy className="w-4 h-4" aria-hidden="true" />
+                  <Copy className="w-5 h-5" aria-hidden="true" />
                 )}
-                {copied ? "Kopyalandı" : "Kopyala"}
               </button>
             </div>
           </motion.div>
