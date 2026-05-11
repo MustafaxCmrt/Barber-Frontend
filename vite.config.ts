@@ -7,6 +7,13 @@ export default defineConfig(({ mode }) => {
   const backendTarget =
     process.env.BACKEND_URL || env.VITE_API_BASE || "http://localhost:5157";
 
+  if (mode === "production" && !env.VITE_API_BASE) {
+    throw new Error(
+      "VITE_API_BASE production build için zorunludur. " +
+        "Örn: VITE_API_BASE=https://apibarber.mustafacomert.com.tr npm run build",
+    );
+  }
+
   return {
   plugins: [react()],
   resolve: {

@@ -148,18 +148,19 @@ api.interceptors.response.use(
 
     // Debug log — her hatada detayı yaz (response body, correlationId, gönderilen body).
     // Geliştirme sırasında 400/422 gibi hataların kaynağını anlamak için kritik.
-    // JSON.stringify ile düz metin olarak yazıyoruz — Chrome console "Object"
-    // diye katlamasın diye.
-    try {
-      console.error(
-        `[API ${status}] ${error.config?.method?.toUpperCase()} ${error.config?.url}\n` +
-          `responseBody: ${JSON.stringify(data, null, 2)}\n` +
-          `correlationId: ${correlationId ?? "—"}\n` +
-          `extensionsCode: ${code ?? "—"}\n` +
-          `requestBody: ${typeof error.config?.data === "string" ? error.config?.data : JSON.stringify(error.config?.data, null, 2)}`,
-      );
-    } catch {
-      console.error(`[API ${status}]`, status, data);
+    // Prod'da PII / correlationId sızmasın diye sadece dev modunda yazıyoruz.
+    if (import.meta.env.DEV) {
+      try {
+        console.error(
+          `[API ${status}] ${error.config?.method?.toUpperCase()} ${error.config?.url}\n` +
+            `responseBody: ${JSON.stringify(data, null, 2)}\n` +
+            `correlationId: ${correlationId ?? "—"}\n` +
+            `extensionsCode: ${code ?? "—"}\n` +
+            `requestBody: ${typeof error.config?.data === "string" ? error.config?.data : JSON.stringify(error.config?.data, null, 2)}`,
+        );
+      } catch {
+        console.error(`[API ${status}]`, status, data);
+      }
     }
 
     // ---- 401 — JWT yok / expired → auto-logout ----

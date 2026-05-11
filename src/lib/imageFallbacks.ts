@@ -30,6 +30,8 @@ export function getBarberPhotoOnError(_seed: string): string {
 
 function normalizeBackendPhotoUrl(photoUrl: string): string {
   if (typeof window === "undefined") return photoUrl;
+  // localhost normalize sadece dev'de anlamlı — prod bundle'a sızmasın.
+  if (!import.meta.env.DEV) return photoUrl;
 
   try {
     const url = new URL(photoUrl, window.location.origin);
