@@ -311,3 +311,6 @@ TODO.txt
 SCRATCH.txt
 .scratch/
 .notes/
+
+# Deploy archive (manual upload için üretilen, repo dışı)
+admin-dist.zip
